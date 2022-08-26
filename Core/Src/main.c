@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -47,6 +48,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+
+	volatile	uint32_t  timer_1sec_flag = 0 ;
+	uint32_t time_cnt = 0;
 
 /* USER CODE END PV */
 
@@ -90,6 +94,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
 	char DataChar[0xFF];
@@ -109,12 +114,22 @@ int main(void)
 			TIME_as_int_str ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
+//	HAL_TIM_Base_Start(&htim3);
+	HAL_TIM_Base_Start_IT(&htim3);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  if (timer_1sec_flag == 1) {
+			sprintf(DataChar,"timer = %lu\r\n", time_cnt );
+			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+			time_cnt++;
+			timer_1sec_flag = 0;
+
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
