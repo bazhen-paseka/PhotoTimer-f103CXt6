@@ -52,12 +52,16 @@
 
 	volatile	uint32_t  timer_1sec_flag = 0 ;
 	uint32_t time_cnt = 0;
+	char DataChar[0xFF];
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+
+	void RelayOn  (void);
+	void RelayOff (void);
 
 /* USER CODE END PFP */
 
@@ -98,7 +102,8 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
-	char DataChar[0xFF];
+	RelayOff();
+
 	int soft_version_arr_int[3];
 	soft_version_arr_int[0] = ((SOFT_VERSION) / 100)     ;
 	soft_version_arr_int[1] = ((SOFT_VERSION) /  10) %10 ;
@@ -137,6 +142,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  RelayOn();
 	  time_cnt = 0;
 	  do {
 		  if (timer_1sec_flag == 1) {
@@ -148,6 +154,7 @@ int main(void)
 		  }
 	  } while (time_cnt<10) ;
 
+	  RelayOff();
 	  time_cnt = 0;
 	  do {
 		  if (timer_1sec_flag == 1) {
@@ -159,6 +166,7 @@ int main(void)
 		  }
 	  } while (time_cnt<2) ;
 
+	  RelayOn();
 	  time_cnt = 0;
 	  do {
 		  if (timer_1sec_flag == 1) {
@@ -170,6 +178,7 @@ int main(void)
 		  }
 	  } while (time_cnt<20) ;
 
+	  RelayOff();
 	  time_cnt = 0;
 	  do {
 		if (timer_1sec_flag == 1) {
@@ -228,6 +237,18 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void RelayOn  (void) {
+	HAL_GPIO_WritePin(RELAY_GPIO_Port, RELAY_Pin, SET) ;
+	sprintf(DataChar,"relay On\r\n" );
+	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+}
+
+void RelayOff (void) {
+	HAL_GPIO_WritePin(RELAY_GPIO_Port, RELAY_Pin, RESET) ;
+	sprintf(DataChar,"relay Off\r\n" );
+	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+}
 
 /* USER CODE END 4 */
 
