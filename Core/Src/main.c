@@ -137,14 +137,50 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (timer_1sec_flag == 1) {
-			sprintf(DataChar,"timer = %lu\r\n", time_cnt );
+	  time_cnt = 0;
+	  do {
+		  if (timer_1sec_flag == 1) {
+			sprintf(DataChar,"timer10 = %lu\r\n", time_cnt );
 			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
-			tm1637_Display_Decimal( &htm1637, time_cnt, no_double_dot ) ;
+			tm1637_Display_Decimal( &htm1637, 1000 + time_cnt, no_double_dot ) ;
 			time_cnt++;
 			timer_1sec_flag = 0;
+		  }
+	  } while (time_cnt<10) ;
 
-	  }
+	  time_cnt = 0;
+	  do {
+		  if (timer_1sec_flag == 1) {
+			sprintf(DataChar,"timer2 = %lu\r\n", time_cnt );
+			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+			tm1637_Display_Decimal( &htm1637, 2000 + time_cnt, no_double_dot ) ;
+			time_cnt++;
+			timer_1sec_flag = 0;
+		  }
+	  } while (time_cnt<2) ;
+
+	  time_cnt = 0;
+	  do {
+		  if (timer_1sec_flag == 1) {
+			sprintf(DataChar,"timer20 = %lu\r\n", time_cnt );
+			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+			tm1637_Display_Decimal( &htm1637, 3000 + time_cnt, no_double_dot ) ;
+			time_cnt++;
+			timer_1sec_flag = 0;
+		  }
+	  } while (time_cnt<20) ;
+
+	  time_cnt = 0;
+	  do {
+		if (timer_1sec_flag == 1) {
+			sprintf(DataChar,"timer2 = %lu\r\n", time_cnt );
+			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+			tm1637_Display_Decimal( &htm1637, 4000 + time_cnt, no_double_dot ) ;
+			time_cnt++;
+			timer_1sec_flag = 0;
+		}
+	} while (time_cnt<2) ;
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
