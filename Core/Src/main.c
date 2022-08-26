@@ -28,6 +28,7 @@
 	#include <stdio.h>
 	#include <string.h>
 	#include "PhotoTimer_config.h"
+	#include "tm1637_sm.h"
 
 /* USER CODE END Includes */
 
@@ -114,6 +115,19 @@ int main(void)
 			TIME_as_int_str ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
+	//#define TM_CLK_Pin	 		GPIO_PIN_8
+	//#define TM_CLK_GPIO_Port 		GPIOB
+	//#define TM_DIO_Pin 			GPIO_PIN_9
+	//#define TM_DIO_GPIO_Port 		GPIOB
+
+	tm1637_struct htm1637;
+	htm1637.clk_pin	= TM_CLK_Pin ;
+	htm1637.clk_port= TM_CLK_GPIO_Port ;
+	htm1637.dio_pin = TM_DIO_Pin ;
+	htm1637.dio_port= TM_DIO_GPIO_Port ;
+	tm1637_Init( &htm1637 );
+	tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+	tm1637_Display_Decimal( &htm1637, 1936, no_double_dot ) ;
 //	HAL_TIM_Base_Start(&htim3);
 	HAL_TIM_Base_Start_IT(&htim3);
 
@@ -126,6 +140,7 @@ int main(void)
 	  if (timer_1sec_flag == 1) {
 			sprintf(DataChar,"timer = %lu\r\n", time_cnt );
 			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+			tm1637_Display_Decimal( &htm1637, time_cnt, no_double_dot ) ;
 			time_cnt++;
 			timer_1sec_flag = 0;
 
