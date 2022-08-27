@@ -53,6 +53,8 @@
 	volatile	uint32_t  timer_1sec_flag = 0 ;
 	uint32_t time_cnt = 0;
 	char DataChar[0xFF];
+	uint32_t period[4] = { 10, 3, 15, 4} ;
+	tm1637_struct htm1637;
 
 /* USER CODE END PV */
 
@@ -62,6 +64,7 @@ void SystemClock_Config(void);
 
 	void RelayOn  (void);
 	void RelayOff (void);
+	void DisplayOff (void);
 
 /* USER CODE END PFP */
 
@@ -120,12 +123,7 @@ int main(void)
 			TIME_as_int_str ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
-	//#define TM_CLK_Pin	 		GPIO_PIN_8
-	//#define TM_CLK_GPIO_Port 		GPIOB
-	//#define TM_DIO_Pin 			GPIO_PIN_9
-	//#define TM_DIO_GPIO_Port 		GPIOB
 
-	tm1637_struct htm1637;
 	htm1637.clk_pin	= TM_CLK_Pin ;
 	htm1637.clk_port= TM_CLK_GPIO_Port ;
 	htm1637.dio_pin = TM_DIO_Pin ;
@@ -133,8 +131,11 @@ int main(void)
 	tm1637_Init( &htm1637 );
 	tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
 	tm1637_Display_Decimal( &htm1637, 1936, no_double_dot ) ;
+	HAL_Delay(300);
+
 //	HAL_TIM_Base_Start(&htim3);
 	HAL_TIM_Base_Start_IT(&htim3);
+	DisplayOff();
 
   /* USER CODE END 2 */
 
@@ -146,49 +147,56 @@ int main(void)
 	  time_cnt = 0;
 	  do {
 		  if (timer_1sec_flag == 1) {
-			sprintf(DataChar,"timer10 = %lu\r\n", time_cnt );
+			sprintf(DataChar,"timer10 = %lu\r\n", period[0] - time_cnt );
 			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
-			tm1637_Display_Decimal( &htm1637, 1000 + time_cnt, no_double_dot ) ;
+			tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+			tm1637_Display_Decimal( &htm1637, 1000 + period[0] - time_cnt, no_double_dot ) ;
 			time_cnt++;
 			timer_1sec_flag = 0;
 		  }
-	  } while (time_cnt<10) ;
-
-	  RelayOff();
-	  time_cnt = 0;
-	  do {
-		  if (timer_1sec_flag == 1) {
-			sprintf(DataChar,"timer2 = %lu\r\n", time_cnt );
-			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
-			tm1637_Display_Decimal( &htm1637, 2000 + time_cnt, no_double_dot ) ;
-			time_cnt++;
-			timer_1sec_flag = 0;
-		  }
-	  } while (time_cnt<2) ;
+	  } while (time_cnt < period[0]) ;
+	  DisplayOff();
+		RelayOff();
+		time_cnt = 0;
+		do {
+			if (timer_1sec_flag == 1) {
+				sprintf(DataChar,"timer2 = %lu\r\n", period[1] - time_cnt );
+				HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+				tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+				tm1637_Display_Decimal( &htm1637, 2000 + period[1] - time_cnt, no_double_dot ) ;
+				time_cnt++;
+				timer_1sec_flag = 0;
+			}
+		} while (time_cnt < period[1]) ;
+		DisplayOff();
 
 	  RelayOn();
 	  time_cnt = 0;
 	  do {
 		  if (timer_1sec_flag == 1) {
-			sprintf(DataChar,"timer20 = %lu\r\n", time_cnt );
+			sprintf(DataChar,"timer20 = %lu\r\n", period[2] - time_cnt );
 			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
-			tm1637_Display_Decimal( &htm1637, 3000 + time_cnt, no_double_dot ) ;
+			tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+			tm1637_Display_Decimal( &htm1637, 3000 + period[2] - time_cnt, no_double_dot ) ;
 			time_cnt++;
 			timer_1sec_flag = 0;
 		  }
-	  } while (time_cnt<20) ;
+	  } while (time_cnt < period[2]) ;
+	  DisplayOff();
 
 	  RelayOff();
 	  time_cnt = 0;
 	  do {
 		if (timer_1sec_flag == 1) {
-			sprintf(DataChar,"timer2 = %lu\r\n", time_cnt );
+			sprintf(DataChar,"timer2 = %lu\r\n", period[3] - time_cnt );
 			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
-			tm1637_Display_Decimal( &htm1637, 4000 + time_cnt, no_double_dot ) ;
+			tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+			tm1637_Display_Decimal( &htm1637, 4000 + period[3] -time_cnt, no_double_dot ) ;
 			time_cnt++;
 			timer_1sec_flag = 0;
 		}
-	} while (time_cnt<2) ;
+	} while (time_cnt < period[3]) ;
+	  DisplayOff();
 
     /* USER CODE END WHILE */
 
@@ -250,6 +258,12 @@ void RelayOff (void) {
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 }
 
+void DisplayOff (void){
+	tm1637_Set_Brightness( &htm1637, bright_off ) ;
+	//tm1637_Display_Decimal( &htm1637, 0, no_double_dot ) ;
+	HAL_Delay(200);
+//	tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+}
 /* USER CODE END 4 */
 
 /**
