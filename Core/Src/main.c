@@ -53,7 +53,7 @@
 	volatile	uint32_t  timer_1sec_flag = 0 ;
 	uint32_t time_cnt = 0;
 	char DataChar[0xFF];
-	uint32_t period[4] = { 10, 3, 15, 4} ;
+	volatile uint32_t period[4] = { 10, 3, 15, 4} ;
 	tm1637_struct htm1637;
 
 /* USER CODE END PV */
@@ -130,12 +130,24 @@ int main(void)
 	htm1637.dio_port= TM_DIO_GPIO_Port ;
 	tm1637_Init( &htm1637 );
 	tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
-	tm1637_Display_Decimal( &htm1637, 1936, no_double_dot ) ;
+	tm1637_Display_Decimal( &htm1637, 8888, no_double_dot ) ;
 	HAL_Delay(300);
+	DisplayOff();
+
+	for (int i=0; i<4; i++) {
+		tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+		tm1637_Display_Decimal( &htm1637, period[i], no_double_dot ) ;
+		sprintf(DataChar,"period[%d] = %lu\r\n", i, period[i] );
+		HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+		HAL_Delay(700);
+		DisplayOff();
+	}
+	DisplayOff();
+	HAL_Delay(1000);
 
 //	HAL_TIM_Base_Start(&htim3);
 	HAL_TIM_Base_Start_IT(&htim3);
-	DisplayOff();
+
 
   /* USER CODE END 2 */
 
@@ -197,6 +209,7 @@ int main(void)
 		}
 	} while (time_cnt < period[3]) ;
 	  DisplayOff();
+
 
     /* USER CODE END WHILE */
 
