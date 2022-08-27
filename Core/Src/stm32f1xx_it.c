@@ -48,6 +48,7 @@
 	extern	uint32_t  		timer_1sec_flag;
 	extern	uint32_t 		period[4] ;
 	extern 	tm1637_struct	htm1637;
+	extern  uint32_t 		button[5] ;
 
 /* USER CODE END PV */
 
@@ -212,8 +213,7 @@ void EXTI0_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI0_IRQn 0 */
 
-	period[0]++;
-	tm1637_Display_Decimal( &htm1637, 1000 + period[0] , double_dot ) ;
+	button[0] = 1 ;
 
   /* USER CODE END EXTI0_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
@@ -229,8 +229,7 @@ void EXTI1_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI1_IRQn 0 */
 
-	period[0]--;
-	tm1637_Display_Decimal( &htm1637, 1000 + period[0] , double_dot ) ;
+	button[1] = 1 ;
 
   /* USER CODE END EXTI1_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
@@ -246,8 +245,7 @@ void EXTI2_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI2_IRQn 0 */
 
-	period[2]++;
-	tm1637_Display_Decimal( &htm1637, 3000 + period[2] , double_dot ) ;
+	button[2] = 1 ;
 
   /* USER CODE END EXTI2_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
@@ -263,8 +261,8 @@ void EXTI3_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI3_IRQn 0 */
 
-	period[2]--;
-	tm1637_Display_Decimal( &htm1637, 3000 + period[2] , double_dot ) ;
+	button[3] = 1 ;
+
   /* USER CODE END EXTI3_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
   /* USER CODE BEGIN EXTI3_IRQn 1 */
@@ -278,6 +276,8 @@ void EXTI3_IRQHandler(void)
 void EXTI4_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI4_IRQn 0 */
+
+	button[4] = 1 ;
 
   /* USER CODE END EXTI4_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
