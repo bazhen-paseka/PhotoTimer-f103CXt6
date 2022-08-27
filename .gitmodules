@@ -1,3 +1,6 @@
 [submodule "Drivers/tm1637_sm"]
 	path = Drivers/tm1637_sm
 	url = https://github.com/bazhen-paseka/tm1637_sm.git
+[submodule "Drivers/flash_stm32f103_hal_sm"]
+	path = Drivers/flash_stm32f103_hal_sm
+	url = https://github.com/bazhen-paseka/flash_stm32f103_hal_sm.git

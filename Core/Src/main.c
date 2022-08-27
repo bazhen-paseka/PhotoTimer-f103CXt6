@@ -29,6 +29,7 @@
 	#include <string.h>
 	#include "PhotoTimer_config.h"
 	#include "tm1637_sm.h"
+	#include "flash_stm32f103_hal_sm.h"
 
 /* USER CODE END Includes */
 
@@ -39,6 +40,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+	#define	PERIOD_QNT	4
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -50,9 +54,13 @@
 
 /* USER CODE BEGIN PV */
 
-	volatile	uint32_t  timer_1sec_flag = 0 ;
-	uint32_t time_cnt = 0;
-	char DataChar[0xFF];
+	volatile	uint32_t  	timer_1sec_flag = 0 ;
+	volatile	uint32_t	button[5] = { 0 } ;
+				uint32_t 	time_cnt = 0;
+				char 		DataChar[0xFF];
+				uint32_t 	period[PERIOD_QNT] = { 10, 2, 15, 2} ;
+
+	tm1637_struct htm1637;
 
 /* USER CODE END PV */
 
@@ -62,6 +70,7 @@ void SystemClock_Config(void);
 
 	void RelayOn  (void);
 	void RelayOff (void);
+	void DisplayOff (void);
 
 /* USER CODE END PFP */
 
@@ -120,20 +129,36 @@ int main(void)
 			TIME_as_int_str ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , strlen(DataChar) , 100 ) ;
 
-	//#define TM_CLK_Pin	 		GPIO_PIN_8
-	//#define TM_CLK_GPIO_Port 		GPIOB
-	//#define TM_DIO_Pin 			GPIO_PIN_9
-	//#define TM_DIO_GPIO_Port 		GPIOB
 
-	tm1637_struct htm1637;
 	htm1637.clk_pin	= TM_CLK_Pin ;
 	htm1637.clk_port= TM_CLK_GPIO_Port ;
 	htm1637.dio_pin = TM_DIO_Pin ;
 	htm1637.dio_port= TM_DIO_GPIO_Port ;
 	tm1637_Init( &htm1637 );
 	tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
-	tm1637_Display_Decimal( &htm1637, 1936, no_double_dot ) ;
-//	HAL_TIM_Base_Start(&htim3);
+	tm1637_Display_Decimal( &htm1637, 8888, double_dot ) ;
+	HAL_Delay(500);
+	DisplayOff();
+
+	#define CX_FLASH_PAGE_ADDR ((uint32_t)0x08004000)
+	 uint32_t flash_word_u32;
+	 flash_word_u32 = Flash_Read(CX_FLASH_PAGE_ADDR);
+	sprintf(DataChar,"flash_word_u32 = %lX\r\n",  flash_word_u32 );
+	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+	period[0] = (flash_word_u32>>16) ;
+	period[2] = flash_word_u32&0xFFFF ;
+
+	for (int i=0; i < PERIOD_QNT; i++) {
+		tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+		tm1637_Display_Decimal( &htm1637, (i+1)*1000 +period[i], no_double_dot ) ;
+		sprintf(DataChar,"period[%d] = %lu\r\n", i, period[i] );
+		HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+		HAL_Delay(700);
+		DisplayOff();
+	}
+	DisplayOff();
+	HAL_Delay(500);
+
 	HAL_TIM_Base_Start_IT(&htim3);
 
   /* USER CODE END 2 */
@@ -142,53 +167,81 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  RelayOn();
-	  time_cnt = 0;
-	  do {
-		  if (timer_1sec_flag == 1) {
-			sprintf(DataChar,"timer10 = %lu\r\n", time_cnt );
-			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
-			tm1637_Display_Decimal( &htm1637, 1000 + time_cnt, no_double_dot ) ;
-			time_cnt++;
-			timer_1sec_flag = 0;
+	  for (int p=0; p < PERIOD_QNT; p++) {
+		  if ((p==0) || (p==2)) {
+			  RelayOn();
+		  } else {
+			  RelayOff();
 		  }
-	  } while (time_cnt<10) ;
 
-	  RelayOff();
-	  time_cnt = 0;
-	  do {
-		  if (timer_1sec_flag == 1) {
-			sprintf(DataChar,"timer2 = %lu\r\n", time_cnt );
-			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
-			tm1637_Display_Decimal( &htm1637, 2000 + time_cnt, no_double_dot ) ;
-			time_cnt++;
-			timer_1sec_flag = 0;
-		  }
-	  } while (time_cnt<2) ;
+		  time_cnt = 0;
+		  do {
+			  if (button[0] == 1) {
+				  TIM3->CNT = 1;
+				  	period[0]++;
+					tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+					tm1637_Display_Decimal( &htm1637, 1000 + period[0], no_double_dot ) ;
+					HAL_Delay(100);
+					button[0] = 0 ;
+			  }
+			  if (button[1] == 1) {
+				  TIM3->CNT = 1;
+				  	period[0]--;
+					tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+					tm1637_Display_Decimal( &htm1637, 1000 + period[0], no_double_dot ) ;
+					HAL_Delay(100);
+					button[1] = 0 ;
+			  }
+			  if (button[2] == 1) {
+				  TIM3->CNT = 1;
+					period[2]++;
+					tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+					tm1637_Display_Decimal( &htm1637, 3000 + period[2], no_double_dot ) ;
+					HAL_Delay(100);
+					button[2] = 0 ;
+			  }
+			  if (button[3] == 1) {
+				  TIM3->CNT = 1;
+					period[2]--;
+					tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+					tm1637_Display_Decimal( &htm1637, 3000 + period[2], no_double_dot ) ;
+					HAL_Delay(100);
+					button[3] = 0 ;
+			  }
+			  if (button[4] == 1) {
+				  TIM3->CNT = 1;
+					sprintf(DataChar,"Write to EEPROM \r\n" ) ;
+					HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
-	  RelayOn();
-	  time_cnt = 0;
-	  do {
-		  if (timer_1sec_flag == 1) {
-			sprintf(DataChar,"timer20 = %lu\r\n", time_cnt );
-			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
-			tm1637_Display_Decimal( &htm1637, 3000 + time_cnt, no_double_dot ) ;
-			time_cnt++;
-			timer_1sec_flag = 0;
-		  }
-	  } while (time_cnt<20) ;
+					 uint32_t flash_word_u32;
+					flash_word_u32 = (period[0]<<16) + period[2] ;
+					 HAL_FLASH_Unlock();
+					 Flash_Erase_Page(CX_FLASH_PAGE_ADDR);
+					 Flash_Write( CX_FLASH_PAGE_ADDR, flash_word_u32);
+					 HAL_FLASH_Lock();
+						sprintf(DataChar,"flash_word_u32 = %lX\r\n",  flash_word_u32 );
+						HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
-	  RelayOff();
-	  time_cnt = 0;
-	  do {
-		if (timer_1sec_flag == 1) {
-			sprintf(DataChar,"timer2 = %lu\r\n", time_cnt );
-			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
-			tm1637_Display_Decimal( &htm1637, 4000 + time_cnt, no_double_dot ) ;
-			time_cnt++;
-			timer_1sec_flag = 0;
-		}
-	} while (time_cnt<2) ;
+					tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+					tm1637_Display_Decimal( &htm1637, 7777, no_double_dot ) ;
+					HAL_Delay(200);
+					button[4] = 0 ;
+			  }
+
+			  if (timer_1sec_flag == 1) {
+				sprintf(DataChar,"timer%d = %lu\r\n",  p,  period[p] - time_cnt );
+				HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+				tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+				tm1637_Display_Decimal( &htm1637, (p+1)*1000 + period[p] - time_cnt, no_double_dot ) ;
+				time_cnt++;
+				timer_1sec_flag = 0;
+			  }
+		  } while (time_cnt <= period[p]) ;
+		  DisplayOff();
+	  }
+
+
+
 
     /* USER CODE END WHILE */
 
@@ -250,6 +303,12 @@ void RelayOff (void) {
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 }
 
+void DisplayOff (void){
+	tm1637_Set_Brightness( &htm1637, bright_off ) ;
+	//tm1637_Display_Decimal( &htm1637, 0, no_double_dot ) ;
+	HAL_Delay(100);
+//	tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
+}
 /* USER CODE END 4 */
 
 /**
