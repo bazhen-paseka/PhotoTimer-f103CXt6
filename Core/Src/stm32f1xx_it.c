@@ -45,9 +45,9 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
-	extern	uint32_t  		timer_1sec_flag;
-	extern	uint32_t 		period[4] ;
 	extern 	tm1637_struct	htm1637;
+
+	extern	uint32_t  		timer_1sec_flag;
 	extern  uint32_t 		button[5] ;
 
 /* USER CODE END PV */

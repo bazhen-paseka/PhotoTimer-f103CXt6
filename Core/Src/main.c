@@ -136,8 +136,8 @@ int main(void)
 	htm1637.dio_port= TM_DIO_GPIO_Port ;
 	tm1637_Init( &htm1637 );
 	tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
-	tm1637_Display_Decimal( &htm1637, 8888, no_double_dot ) ;
-	HAL_Delay(300);
+	tm1637_Display_Decimal( &htm1637, 8888, double_dot ) ;
+	HAL_Delay(500);
 	DisplayOff();
 
 	#define CX_FLASH_PAGE_ADDR ((uint32_t)0x08004000)
@@ -150,7 +150,7 @@ int main(void)
 
 	for (int i=0; i < PERIOD_QNT; i++) {
 		tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
-		tm1637_Display_Decimal( &htm1637, period[i], no_double_dot ) ;
+		tm1637_Display_Decimal( &htm1637, (i+1)*1000 +period[i], no_double_dot ) ;
 		sprintf(DataChar,"period[%d] = %lu\r\n", i, period[i] );
 		HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 		HAL_Delay(700);
@@ -177,6 +177,7 @@ int main(void)
 		  time_cnt = 0;
 		  do {
 			  if (button[0] == 1) {
+				  TIM3->CNT = 1;
 				  	period[0]++;
 					tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
 					tm1637_Display_Decimal( &htm1637, 1000 + period[0], no_double_dot ) ;
@@ -184,6 +185,7 @@ int main(void)
 					button[0] = 0 ;
 			  }
 			  if (button[1] == 1) {
+				  TIM3->CNT = 1;
 				  	period[0]--;
 					tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
 					tm1637_Display_Decimal( &htm1637, 1000 + period[0], no_double_dot ) ;
@@ -191,6 +193,7 @@ int main(void)
 					button[1] = 0 ;
 			  }
 			  if (button[2] == 1) {
+				  TIM3->CNT = 1;
 					period[2]++;
 					tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
 					tm1637_Display_Decimal( &htm1637, 3000 + period[2], no_double_dot ) ;
@@ -198,6 +201,7 @@ int main(void)
 					button[2] = 0 ;
 			  }
 			  if (button[3] == 1) {
+				  TIM3->CNT = 1;
 					period[2]--;
 					tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
 					tm1637_Display_Decimal( &htm1637, 3000 + period[2], no_double_dot ) ;
@@ -205,6 +209,7 @@ int main(void)
 					button[3] = 0 ;
 			  }
 			  if (button[4] == 1) {
+				  TIM3->CNT = 1;
 					sprintf(DataChar,"Write to EEPROM \r\n" ) ;
 					HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
@@ -301,7 +306,7 @@ void RelayOff (void) {
 void DisplayOff (void){
 	tm1637_Set_Brightness( &htm1637, bright_off ) ;
 	//tm1637_Display_Decimal( &htm1637, 0, no_double_dot ) ;
-	HAL_Delay(200);
+	HAL_Delay(100);
 //	tm1637_Set_Brightness( &htm1637, bright_45percent ) ;
 }
 /* USER CODE END 4 */
