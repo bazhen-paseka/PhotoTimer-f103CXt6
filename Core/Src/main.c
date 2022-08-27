@@ -29,6 +29,7 @@
 	#include <string.h>
 	#include "PhotoTimer_config.h"
 	#include "tm1637_sm.h"
+	#include "flash_stm32f103_hal_sm.h"
 
 /* USER CODE END Includes */
 
@@ -144,6 +145,19 @@ int main(void)
 	}
 	DisplayOff();
 	HAL_Delay(1000);
+
+	#define CX_FLASH_PAGE_ADDR ((uint32_t)0x08004000)
+
+	 uint32_t flash_word_u32;
+	 flash_word_u32 = Flash_Read(CX_FLASH_PAGE_ADDR);
+	sprintf(DataChar,"flash_word_u32 = %lX\r\n",  flash_word_u32 );
+	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+
+	flash_word_u32 = 0x00F200F3;
+	 HAL_FLASH_Unlock();
+	 Flash_Erase_Page(CX_FLASH_PAGE_ADDR);
+	 Flash_Write( CX_FLASH_PAGE_ADDR, flash_word_u32);
+	 HAL_FLASH_Lock();
 
 //	HAL_TIM_Base_Start(&htim3);
 	HAL_TIM_Base_Start_IT(&htim3);
